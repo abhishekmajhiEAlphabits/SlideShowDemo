@@ -34,7 +34,9 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
 
     private lateinit var fileDescriptors: ArrayList<FileDescriptors>
 
-            private val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath() + "/sample.mp4";
+    private val path =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            .getPath() + "/sample.mp4";
 //    var path = "android.resource://jp.shts.android.storyprogressbar/raw/sample"
 
     private val slides: Array<Slide> = arrayOf<Slide>(
@@ -53,6 +55,10 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
 //        R.drawable.sample2,
 //        R.drawable.sportscar,
 //        R.drawable.sample2
+//    )
+
+//    private val durations = longArrayOf(
+//        10000, 3000, 4000, 7000, 6000, 9000
 //    )
 
     private val durations = longArrayOf(
@@ -98,13 +104,17 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
         fileDescriptors = ArrayList<FileDescriptors>()
         fileDescriptors.clear()
 
-        fileDescriptors.add(FileDescriptors(106,3,"/storage/emulated/0/Android/data/com.example.slideshowdemo/files/Download/sample.mp4"))
+//        fileDescriptors.add(FileDescriptors(106,3,"/storage/emulated/0/Android/data/com.example.slideshowdemo/files/Download/sample.mp4"))
+//       fileDescriptors = playlistManager.getDownloadedFilePath()
+        playlistManager.getDownloadedFilePath().forEach {
+            fileDescriptors.add(it)
+        }
         Log.d("abhi", "descrip :: $fileDescriptors")
 
         if (fileDescriptors.isNotEmpty()) {
 
 
-            if (fileDescriptors[counter].contentType === 3) {
+            if (fileDescriptors[counter].contentType == 3 && fileDescriptors[counter].isFileExist) {
                 val videoUri = Uri.parse(fileDescriptors[0].slideFilePath)
                 video!!.setVideoURI(videoUri)
                 video!!.setOnPreparedListener {
@@ -112,9 +122,18 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
                     video!!.start()
                 }
             }
-            if (fileDescriptors[counter].contentType === 2) {
-                image!!.setImageResource(slides[0].imgRes)
-//                image!!.setImageURI(fileDescriptors[0].slideContentUri)
+            if (fileDescriptors[counter].contentType == 3 && !fileDescriptors[counter].isFileExist) {
+                video!!.visibility = View.GONE
+                image!!.setImageResource(R.drawable.ic_launcher_background)
+            }
+
+            //for image
+            if (fileDescriptors[counter].contentType == 2 && fileDescriptors[counter].isFileExist) {
+                val imageUri = Uri.parse(fileDescriptors[0].slideFilePath)
+                image!!.setImageURI(imageUri)
+            }
+            if (fileDescriptors[counter].contentType == 2 && !fileDescriptors[counter].isFileExist) {
+                image!!.setImageResource(R.drawable.ic_launcher_background)
             }
 
 
@@ -182,11 +201,11 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
     }
 
     private fun playSlideShow() {
-        if (fileDescriptors[++counter].contentType === 3) {
+        if (fileDescriptors[++counter].contentType === 3 && fileDescriptors[counter].isFileExist) {
             try {
                 image!!.visibility = View.GONE
                 video!!.visibility = View.VISIBLE
-                val videoUri = Uri.parse(fileDescriptors[0].slideFilePath)
+                val videoUri = Uri.parse(fileDescriptors[counter].slideFilePath)
                 Log.d("abhi", "uri : $videoUri")
                 video!!.setVideoURI(videoUri)
                 video!!.setOnPreparedListener {
@@ -202,7 +221,13 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
                 Log.d("abhi", e.toString())
             }
         }
-        if (fileDescriptors[++counter].contentType === 2) {
+        if (fileDescriptors[counter].contentType == 3 && !fileDescriptors[counter].isFileExist) {
+            video!!.visibility = View.GONE
+            image!!.setImageResource(R.drawable.ic_launcher_background)
+        }
+
+        //for image
+        if (fileDescriptors[++counter].contentType == 2 && fileDescriptors[counter].isFileExist) {
             video!!.stopPlayback()
             video!!.clearAnimation()
             video!!.visibility = View.GONE
@@ -215,6 +240,9 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
                 applicationContext, R.anim.slide
             )
             image!!.startAnimation(animSlide)
+        }
+        if (fileDescriptors[counter].contentType === 2 && !fileDescriptors[counter].isFileExist) {
+            image!!.setImageResource(R.drawable.ic_launcher_background)
         }
     }
 

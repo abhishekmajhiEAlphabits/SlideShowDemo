@@ -14,6 +14,7 @@ import com.example.slideshowdemo.model.PlaylistData
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -101,7 +102,6 @@ class PlaylistManager(context: Context) {
             val uri: Uri = Uri.parse(it.slideContentUrl)
             Log.d(TAG, "$uri")
             downloadMedia(uri, it.id, it.contentType)
-            readFromStorage(uri, it.id, it.contentType)
         }
         playlistSize = mediaSourceUrls.size
         Log.d(TAG, "$playlistSize")
@@ -113,16 +113,22 @@ class PlaylistManager(context: Context) {
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
         if (contentType == 2) {
-            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
+//            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
 //            val fileDir: String = "/DownloadTestFolder"
-            request.setDestinationInExternalPublicDir(fileDir, "$fileId.JPG")
-            Log.d(TAG, "files image $fileDir :: $fileId")
+            request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "$fileId.JPG"
+            )
+            Log.d(TAG, "files image fileDir :: $fileId")
         }
 
         if (contentType == 3) {
-            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
-            request.setDestinationInExternalPublicDir(fileDir, "$fileId.mp4")
-            Log.d(TAG, "files video $fileDir :: $fileId")
+//            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
+            request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "$fileId.mp4"
+            )
+            Log.d(TAG, "files video fileDir :: $fileId")
         }
 
 
@@ -133,24 +139,44 @@ class PlaylistManager(context: Context) {
         val cursor: Cursor = downloadManager.query(query)
     }
 
-    private fun readFromStorage(uri: Uri, fileId: Int, contentType: Int) {
+    private fun readFromStorage(fileId: Int, contentType: Int, interval: Int) {
         fileDescriptors.clear()
         if (contentType == 2) {
-            var file = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.JPG"
-            Log.d(TAG, "read image :: $file")
-            fileDescriptors.add(FileDescriptors(fileId, contentType, file))
+            var filePath =
+                "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.JPG"
+//            val path = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath}/$fileId.JPG"
+            var file = File(filePath)
+            if (file.exists()) {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
+            } else {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
+            }
+            Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
         }
 
         if (contentType == 3) {
-            var file = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.mp4"
-            Log.d(TAG, "read video :: $file")
-            fileDescriptors.add(FileDescriptors(fileId, contentType, file))
+            var filePath =
+                "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.mp4"
+            var file = File(filePath)
+            if (file.exists()) {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
+            } else {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
+            }
+            Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
         }
 
     }
 
     fun getDownloadedFilePath(): ArrayList<FileDescriptors> {
         return fileDescriptors
+    }
+
+    private fun readData() {
+        mediaSourceUrls.forEach {
+            readFromStorage(it.id, it.contentType, it.interval)
+        }
+        getDownloadedFilePath()
     }
 
 }
