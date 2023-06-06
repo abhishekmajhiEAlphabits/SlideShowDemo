@@ -37,6 +37,7 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <receiver android:name=".receivers.DownloadsReceiver"/>
     </application>
 
 </manifest>

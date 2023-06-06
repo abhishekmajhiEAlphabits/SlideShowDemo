@@ -9,6 +9,8 @@ import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.slideshowdemo.model.FileDescriptors
 import com.example.slideshowdemo.model.PlaylistData
 import retrofit2.Call
@@ -16,15 +18,20 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.util.*
+import javax.inject.Singleton
 import kotlin.collections.ArrayList
 
-
+@Singleton
 class PlaylistManager(context: Context) {
     private var TAG = "abhi"
     val context = context
     private var mediaSourceUrls = ArrayList<PlaylistData>()
     private var playlistSize: Int? = null
     private var fileDescriptors = ArrayList<FileDescriptors>()
+
+    private val _slideInterval = MutableLiveData<String>()
+    val slideIntervalLivedata: LiveData<String> = _slideInterval
+
 
     fun getPlayListData() {
         var localScreenCode = "C22G66"
@@ -74,6 +81,7 @@ class PlaylistManager(context: Context) {
                                     Log.d(TAG, "${response.body()!!.size}")
                                 }
                                 getFileUri()
+                                readData()
                             }
 
 
@@ -115,7 +123,7 @@ class PlaylistManager(context: Context) {
         if (contentType == 2) {
 //            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
 //            val fileDir: String = "/DownloadTestFolder"
-            request.setDestinationInExternalPublicDir(
+            request.setDestinationInExternalFilesDir(context,
                 Environment.DIRECTORY_DOWNLOADS,
                 "$fileId.JPG"
             )
@@ -124,7 +132,7 @@ class PlaylistManager(context: Context) {
 
         if (contentType == 3) {
 //            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
-            request.setDestinationInExternalPublicDir(
+            request.setDestinationInExternalFilesDir(context,
                 Environment.DIRECTORY_DOWNLOADS,
                 "$fileId.mp4"
             )
@@ -140,7 +148,6 @@ class PlaylistManager(context: Context) {
     }
 
     private fun readFromStorage(fileId: Int, contentType: Int, interval: Int) {
-        fileDescriptors.clear()
         if (contentType == 2) {
             var filePath =
                 "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.JPG"
@@ -151,7 +158,7 @@ class PlaylistManager(context: Context) {
             } else {
                 fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
             }
-            Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
+            Log.d(TAG, "read image :: $filePath :: ${file.exists()}")
         }
 
         if (contentType == 3) {
@@ -166,17 +173,22 @@ class PlaylistManager(context: Context) {
             Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
         }
 
+        _slideInterval.postValue("slide interval updated")
+
     }
 
     fun getDownloadedFilePath(): ArrayList<FileDescriptors> {
+        Log.d("abhi", "descripss :: $fileDescriptors")
+        readData()
         return fileDescriptors
     }
 
     private fun readData() {
+        fileDescriptors.clear()
         mediaSourceUrls.forEach {
             readFromStorage(it.id, it.contentType, it.interval)
+            Log.d("abhi", "readData")
         }
-        getDownloadedFilePath()
     }
 
 }

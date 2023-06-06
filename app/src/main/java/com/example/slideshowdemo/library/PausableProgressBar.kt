@@ -124,7 +124,7 @@ class PausableProgressBar @JvmOverloads constructor(
                 val sec = duration.toString()
                 Toast.makeText(
                     context,
-                    "Slide Time : " + sec.replace("0", "") + " seconds",
+                    "Slide Time : " + sec.toString() + " milliseconds",
                     Toast.LENGTH_SHORT
                 ).show()
             }
