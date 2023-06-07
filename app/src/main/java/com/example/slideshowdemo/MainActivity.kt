@@ -90,14 +90,17 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
             registerDownloadReceiver()
 
             //api call
-            playlistManager = PlaylistManager(applicationContext)
-            playlistManager.getPlayListData()
+            Thread(Runnable {
+                kotlin.run {
+                    playlistManager = PlaylistManager(this)
+                    playlistManager.getPlayListData()
+                }
+            }).start()
 
             //init fileDescriptors arrayList
             fileDescriptors = ArrayList<FileDescriptors>()
             fileDescriptors.clear()
 
-//            playlistApiCall()
             Log.d("abhi", "descripMain :: $fileDescriptors")
 
             if (fileDescriptors.isNotEmpty()) {
@@ -186,6 +189,10 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
             Log.d("abhi", "inside observer")
             getMediaFilePaths()
         })
+        playlistManager.fileDescriptorData.observe(this, Observer {
+            Log.d("abhi", "inside file observer")
+            getMediaFilePaths()
+        })
     }
 
     private fun registerDownloadReceiver() {
@@ -194,14 +201,11 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
     }
 
     private fun getMediaFilePaths() {
-        Thread(Runnable {
-            kotlin.run {
-//                playlistManager.getDownloadedFilePath().forEach {
+        fileDescriptors = playlistManager.getDownloadedFilePath()
+
+//        playlistManager.getDownloadedFilePath().forEach {
 //                    fileDescriptors.add(it)
 //                }
-                fileDescriptors = playlistManager.getDownloadedFilePath()
-            }
-        }).start()
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -239,6 +243,7 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
 
     override fun onNext() {
         try {
+            getMediaFilePaths()
             var size = fileDescriptors.size + 2
             var durations2: LongArray = LongArray(size)
             durations2[0] = 10
@@ -283,7 +288,7 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
                     // mediaPlayer.start();
                     video!!.start()
                     val animSlide = AnimationUtils.loadAnimation(
-                        applicationContext,
+                        this,
                         R.anim.slide
                     )
                     video!!.startAnimation(animSlide)
@@ -313,12 +318,12 @@ class MainActivity : AppCompatActivity(), StoriesProgressView.StoriesListener {
 
             // Load the animation like this
             val animSlide = AnimationUtils.loadAnimation(
-                applicationContext, R.anim.slide
+                this, R.anim.slide
             )
             image!!.startAnimation(animSlide)
         } else if (fileDescriptors[counter].contentType === 2 && !fileDescriptors[counter].isFileExist) {
             image!!.visibility = View.VISIBLE
-            Toast.makeText(applicationContext, "Please wait...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please wait...", Toast.LENGTH_SHORT).show()
             Log.d("abhi", "no image")
             image!!.setImageResource(R.drawable.ic_launcher_background)
         } else {

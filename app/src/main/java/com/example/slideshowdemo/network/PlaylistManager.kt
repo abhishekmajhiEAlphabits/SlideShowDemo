@@ -29,8 +29,8 @@ class PlaylistManager(context: Context) {
     private var playlistSize: Int? = null
     private var fileDescriptors = ArrayList<FileDescriptors>()
 
-    private val _slideInterval = MutableLiveData<String>()
-    val slideIntervalLivedata: LiveData<String> = _slideInterval
+    private val _fileDescriptorData = MutableLiveData<String>()
+    val fileDescriptorData: LiveData<String> = _fileDescriptorData
 
 
     fun getPlayListData() {
@@ -81,12 +81,7 @@ class PlaylistManager(context: Context) {
                                     Log.d(TAG, "${response.body()!!.size}")
                                 }
                                 getFileUri()
-                                readData()
                             }
-
-
-//                            if(response.body().)
-
                         }
 
                     } else {
@@ -123,7 +118,8 @@ class PlaylistManager(context: Context) {
         if (contentType == 2) {
 //            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
 //            val fileDir: String = "/DownloadTestFolder"
-            request.setDestinationInExternalFilesDir(context,
+            request.setDestinationInExternalFilesDir(
+                context,
                 Environment.DIRECTORY_DOWNLOADS,
                 "$fileId.JPG"
             )
@@ -132,7 +128,8 @@ class PlaylistManager(context: Context) {
 
         if (contentType == 3) {
 //            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
-            request.setDestinationInExternalFilesDir(context,
+            request.setDestinationInExternalFilesDir(
+                context,
                 Environment.DIRECTORY_DOWNLOADS,
                 "$fileId.mp4"
             )
@@ -173,7 +170,7 @@ class PlaylistManager(context: Context) {
             Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
         }
 
-        _slideInterval.postValue("slide interval updated")
+        _fileDescriptorData.postValue("file descriptor data updated")
 
     }
 
