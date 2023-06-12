@@ -17,7 +17,7 @@ class LoopingViewPager : ViewPager {
     protected var isAutoScroll = false
     protected var wrapContent = true
     private var durations =
-        longArrayOf(1000, 10000, 3000, 10000, 1000, 8000, 10000)
+        longArrayOf(1000, 3000, 3000, 4000, 1000, 2000, 10000)
     var counter = 0
 
     //AutoScroll
@@ -82,7 +82,7 @@ class LoopingViewPager : ViewPager {
                     autoScrollHandler.removeCallbacks(autoScrollRunnable)
                     autoScrollHandler.postDelayed(autoScrollRunnable, durations[counter])
                     counter++
-                    if (counter == 5) {
+                    if (counter == durations.size) {
                         counter = 0
                     }
                 }

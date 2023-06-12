@@ -85,10 +85,9 @@ class MainActivity : AppCompatActivity() {
             fileDescriptors = ArrayList<FileDescriptors>()
             fileDescriptors.clear()
 
-            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
-            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
-//            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
-            fileDescriptors.add(FileDescriptors(100,3,"android.resource://com.example.slideshowdemo/raw/sample",true,10))
+            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/loading",true,10))
+            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/loading",true,10))
+//            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/sample",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
@@ -124,17 +123,15 @@ class MainActivity : AppCompatActivity() {
     private fun setupObservers() {
         downloadsReceiver.downloadState.observe(this, Observer {
             Log.d("abhi", "inside observer")
-//            fileDescriptors.clear()
             getMediaFilePaths()
             adapter!!.setFileDescriptors(fileDescriptors)
-//            adapter!!.notifyDataSetChanged()
+//            viewPager.reset()
         })
         playlistManager.fileDescriptorData.observe(this, Observer {
             Log.d("abhi", "inside file observer")
-//            fileDescriptors.clear()
             getMediaFilePaths()
             adapter!!.setFileDescriptors(fileDescriptors)
-//            adapter!!.notifyDataSetChanged()
+//            viewPager.reset()
         })
     }
 

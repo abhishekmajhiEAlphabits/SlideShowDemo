@@ -50,7 +50,10 @@ class DemoInfiniteAdapter(
         listPosition: Int,
         viewType: Int
     ) {
-        var views: VideoView? = null
+        var videoView: VideoView? = null
+        var imageView: ImageView? = null
+        videoView = convertView.findViewById<View>(R.id.video) as VideoView
+        imageView = convertView.findViewById<View>(R.id.image) as ImageView
 //        if (listPosition == 1) {
 //            Log.d("abhi", "list :: $listPosition")
 //        } else {
@@ -58,7 +61,6 @@ class DemoInfiniteAdapter(
 //        }
         if (viewType == 3) {
             Log.d("abhi", "listIf :: $listPosition :: ${itemList!![listPosition].slideFilePath}")
-            views = convertView.findViewById<View>(R.id.video) as VideoView
 //            views!!.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
 //            views!!.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
 
@@ -66,26 +68,24 @@ class DemoInfiniteAdapter(
 //                Log.d("abhi", "list is null")
 //            }
             if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
-                views!!.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
-            } else if (itemList!![listPosition].slideFilePath != null && !itemList!![listPosition].isFileExist) {
-                views!!.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
-            }
-            views.start()
-            views.setOnPreparedListener {
-                // mediaPlayer.start()
-                views!!.start()
+//                videoView.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
+                videoView.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
+                videoView.setOnPreparedListener {
+                     it.start()
+//                    videoView!!.start()
+                }
+            } else {
+                videoView.stopPlayback()
+                videoView.visibility = View.GONE
+                imageView.setImageResource(R.drawable.loading)
             }
         } else if (viewType == 2) {
             Log.d("abhi", "listElseIf :: $listPosition")
-            views = convertView.findViewById<View>(R.id.video) as VideoView
-            views!!.stopPlayback()
-            views!!.visibility = View.GONE
-            if (itemList!![listPosition].slideFilePath != null) {
-                var imageView = convertView.findViewById<View>(R.id.image) as ImageView
+            videoView.stopPlayback()
+            videoView.visibility = View.GONE
+            if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
                 imageView.setImageURI(Uri.parse(itemList!![listPosition].slideFilePath))
-
             } else {
-                var imageView = convertView.findViewById<View>(R.id.image) as ImageView
                 imageView.setImageResource(R.drawable.loading)
             }
 //
@@ -100,9 +100,9 @@ class DemoInfiniteAdapter(
 
         } else {
             Log.d("abhi", "listElse :: $listPosition")
-            views = convertView.findViewById<View>(R.id.video) as VideoView
-            views!!.stopPlayback()
-            views!!.visibility = View.GONE
+            videoView = convertView.findViewById<View>(R.id.video) as VideoView
+            videoView!!.stopPlayback()
+            videoView!!.visibility = View.GONE
             convertView.findViewById<View>(R.id.image)
                 .setBackgroundColor(
                     convertView.context.resources.getColor(

@@ -123,14 +123,14 @@ class PlaylistManager(context: Context) {
                     //the filename of the two screen codes may be same the new files
                     //will be downloaded with like eg:- 100_1,100_2
                     if (!fileExistInStorage(filename)) {
-//                        downloadMedia(uri, it.id, it.contentType, filename)
+                        downloadMedia(uri, it.id, it.contentType, filename)
                         Log.d(TAG, "file downloading.. :: $filename")
                     } else {
                         Log.d(TAG, "file already exists :: $filename")
                     }
                 } else {
                     if (!fileExistInStorage(filename)) {
-//                        downloadMedia(uri, it.id, it.contentType, filename)
+                        downloadMedia(uri, it.id, it.contentType, filename)
                         Log.d(TAG, "file downloading.. :: $filename")
                     } else {
                         Log.d(TAG, "file already exists :: $filename")
