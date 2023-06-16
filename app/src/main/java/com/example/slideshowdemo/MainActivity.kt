@@ -85,8 +85,8 @@ class MainActivity : AppCompatActivity() {
             fileDescriptors = ArrayList<FileDescriptors>()
             fileDescriptors.clear()
 
-            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/loading",true,10))
-            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/loading",true,10))
+            fileDescriptors.add(FileDescriptors(100,2,"",false,10))
+            fileDescriptors.add(FileDescriptors(100,2,"",false,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/sample",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity() {
 
             Log.d("abhi", "descripMain :: $fileDescriptors")
 
+            getMediaFilePaths()
             setupObservers()
         } catch (e: Exception) {
             Log.d("abhi", "error in onCreate :: $e")
@@ -125,13 +126,11 @@ class MainActivity : AppCompatActivity() {
             Log.d("abhi", "inside observer")
             getMediaFilePaths()
             adapter!!.setFileDescriptors(fileDescriptors)
-//            viewPager.reset()
         })
         playlistManager.fileDescriptorData.observe(this, Observer {
             Log.d("abhi", "inside file observer")
             getMediaFilePaths()
             adapter!!.setFileDescriptors(fileDescriptors)
-//            viewPager.reset()
         })
     }
 
@@ -160,6 +159,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    override fun onResume() {
+        setupObservers()
+        super.onResume()
+    }
 
     override fun onDestroy() {
         unregisterReceiver(downloadsReceiver)

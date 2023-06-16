@@ -1,5 +1,6 @@
 package com.example.slideshowdemo.adapters
 
+import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
@@ -54,6 +55,8 @@ class DemoInfiniteAdapter(
         var imageView: ImageView? = null
         videoView = convertView.findViewById<View>(R.id.video) as VideoView
         imageView = convertView.findViewById<View>(R.id.image) as ImageView
+        val description = convertView.findViewById<TextView>(R.id.description)
+//        val loading = convertView.findViewById<View>(R.id.loadingTxt)
 //        if (listPosition == 1) {
 //            Log.d("abhi", "list :: $listPosition")
 //        } else {
@@ -61,31 +64,36 @@ class DemoInfiniteAdapter(
 //        }
         if (viewType == 3) {
             Log.d("abhi", "listIf :: $listPosition :: ${itemList!![listPosition].slideFilePath}")
-//            views!!.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
-//            views!!.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
-
-//            if (fileDescriptors == null){
-//                Log.d("abhi", "list is null")
-//            }
+//            loading.visibility = View.GONE
+            imageView.visibility = View.GONE
             if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
-//                videoView.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
-                videoView.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
+                videoView.visibility = View.VISIBLE
+                videoView.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
+//                videoView.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
+//                videoView.start()
                 videoView.setOnPreparedListener {
-                     it.start()
-//                    videoView!!.start()
+//                    it.start()
+                    videoView!!.start()
                 }
             } else {
                 videoView.stopPlayback()
                 videoView.visibility = View.GONE
+                imageView.visibility = View.VISIBLE
                 imageView.setImageResource(R.drawable.loading)
+//                loading.visibility = View.VISIBLE
             }
         } else if (viewType == 2) {
             Log.d("abhi", "listElseIf :: $listPosition")
             videoView.stopPlayback()
             videoView.visibility = View.GONE
+//            loading.visibility = View.GONE
+            imageView.visibility = View.VISIBLE
             if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
                 imageView.setImageURI(Uri.parse(itemList!![listPosition].slideFilePath))
             } else {
+//                imageView.visibility = View.GONE
+//                loading.visibility = View.VISIBLE
+                imageView.visibility = View.VISIBLE
                 imageView.setImageResource(R.drawable.loading)
             }
 //
@@ -103,14 +111,17 @@ class DemoInfiniteAdapter(
             videoView = convertView.findViewById<View>(R.id.video) as VideoView
             videoView!!.stopPlayback()
             videoView!!.visibility = View.GONE
-            convertView.findViewById<View>(R.id.image)
-                .setBackgroundColor(
-                    convertView.context.resources.getColor(
-                        getBackgroundColor(
-                            listPosition
-                        )
-                    )
-                )
+            imageView.visibility = View.VISIBLE
+            imageView.setImageResource(R.drawable.loading)
+//            loading.visibility = View.VISIBLE
+//            convertView.findViewById<View>(R.id.image)
+//                .setBackgroundColor(
+//                    convertView.context.resources.getColor(
+//                        getBackgroundColor(
+//                            listPosition
+//                        )
+//                    )
+//                )
         }
         Log.d("abhi", "descripFiledeabh :: $itemList")
 //        val description = convertView.findViewById<TextView>(R.id.description)
@@ -130,8 +141,10 @@ class DemoInfiniteAdapter(
     }
 
     fun setFileDescriptors(fileDescriptors: ArrayList<FileDescriptors>) {
-        this.itemList = fileDescriptors
-        notifyDataSetChanged()
+        if (this.itemList!!.size != 6) {
+            this.itemList = fileDescriptors
+            notifyDataSetChanged()
+        }
     }
 
     companion object {
