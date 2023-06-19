@@ -53,8 +53,8 @@ class DemoInfiniteAdapter(
     ) {
         var videoView: VideoView? = null
         var imageView: ImageView? = null
-        videoView = convertView.findViewById<View>(R.id.video) as VideoView
-        imageView = convertView.findViewById<View>(R.id.image) as ImageView
+//        videoView = convertView.findViewById<View>(R.id.video) as VideoView
+//        imageView = convertView.findViewById<View>(R.id.image) as ImageView
         val description = convertView.findViewById<TextView>(R.id.description)
 //        val loading = convertView.findViewById<View>(R.id.loadingTxt)
 //        if (listPosition == 1) {
@@ -63,9 +63,11 @@ class DemoInfiniteAdapter(
 //            Log.d("abhi", "list :: $listPosition")
 //        }
         if (viewType == 3) {
+            videoView = convertView.findViewById<View>(R.id.video) as VideoView
+            imageView = convertView.findViewById<View>(R.id.image) as ImageView
             Log.d("abhi", "listIf :: $listPosition :: ${itemList!![listPosition].slideFilePath}")
 //            loading.visibility = View.GONE
-            imageView.visibility = View.GONE
+//            imageView.visibility = View.GONE
             if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
                 videoView.visibility = View.VISIBLE
                 videoView.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
@@ -76,15 +78,17 @@ class DemoInfiniteAdapter(
                     videoView!!.start()
                 }
             } else {
-                videoView.stopPlayback()
+//                videoView.stopPlayback()
                 videoView.visibility = View.GONE
                 imageView.visibility = View.VISIBLE
                 imageView.setImageResource(R.drawable.loading)
 //                loading.visibility = View.VISIBLE
             }
         } else if (viewType == 2) {
+            videoView = convertView.findViewById<View>(R.id.video) as VideoView
+            imageView = convertView.findViewById<View>(R.id.image) as ImageView
             Log.d("abhi", "listElseIf :: $listPosition")
-            videoView.stopPlayback()
+//            videoView.stopPlayback()
             videoView.visibility = View.GONE
 //            loading.visibility = View.GONE
             imageView.visibility = View.VISIBLE
@@ -107,12 +111,13 @@ class DemoInfiniteAdapter(
 //                )
 
         } else {
-            Log.d("abhi", "listElse :: $listPosition")
             videoView = convertView.findViewById<View>(R.id.video) as VideoView
-            videoView!!.stopPlayback()
+            imageView = convertView.findViewById<View>(R.id.image) as ImageView
+            Log.d("abhi", "listElse :: $listPosition")
+//            videoView!!.stopPlayback()
             videoView!!.visibility = View.GONE
-            imageView.visibility = View.VISIBLE
-            imageView.setImageResource(R.drawable.loading)
+            imageView!!.visibility = View.VISIBLE
+            imageView!!.setImageResource(R.drawable.loading)
 //            loading.visibility = View.VISIBLE
 //            convertView.findViewById<View>(R.id.image)
 //                .setBackgroundColor(
