@@ -18,6 +18,7 @@ import com.example.slideshowdemo.model.FileDescriptors
 import com.example.slideshowdemo.model.Slide
 import com.example.slideshowdemo.network.PlaylistManager
 import com.example.slideshowdemo.receivers.DownloadsReceiver
+import com.example.slideshowdemo.utils.AppPreferences
 
 
 class MainActivity : AppCompatActivity() {
@@ -33,19 +34,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileDescriptors: ArrayList<FileDescriptors>
     private lateinit var playlistManager: PlaylistManager
 
-    private val path =
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            .getPath() + "/sample.mp4"
-//    var path = "android.resource://jp.shts.android.storyprogressbar/raw/sample"
-
-    private val slides: Array<Slide> = arrayOf<Slide>(
-        Slide(0, path),
-        Slide(R.drawable.ic_launcher_background, "0"),
-        Slide(0, path),
-        Slide(R.drawable.ic_launcher_background, "0"),
-        Slide(0, path),
-        Slide(R.drawable.ic_launcher_background, "0")
-    )
+//    private val path =
+//        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//            .getPath() + "/sample.mp4"
+////    var path = "android.resource://jp.shts.android.storyprogressbar/raw/sample"
+//
+//    private val slides: Array<Slide> = arrayOf<Slide>(
+//        Slide(0, path),
+//        Slide(R.drawable.ic_launcher_background, "0"),
+//        Slide(0, path),
+//        Slide(R.drawable.ic_launcher_background, "0"),
+//        Slide(0, path),
+//        Slide(R.drawable.ic_launcher_background, "0")
+//    )
 
 //    private val resources = intArrayOf(
 //        R.drawable.sportscar,
@@ -73,6 +74,8 @@ class MainActivity : AppCompatActivity() {
         try {
             getStoragePermission()
 
+            AppPreferences(this@MainActivity).saveKeyValue("C22G66", "LOCAL_SCREEN_CODE")
+
             //api call
             Thread(Runnable {
                 kotlin.run {
@@ -85,8 +88,8 @@ class MainActivity : AppCompatActivity() {
             fileDescriptors = ArrayList<FileDescriptors>()
             fileDescriptors.clear()
 
-            fileDescriptors.add(FileDescriptors(100,2,"",false,10))
-            fileDescriptors.add(FileDescriptors(100,2,"",false,10))
+            fileDescriptors.add(FileDescriptors(100, 2, "", false, 10))
+            fileDescriptors.add(FileDescriptors(100, 2, "", false, 10))
 //            fileDescriptors.add(FileDescriptors(100,2,"android.resource://com.example.slideshowdemo/raw/sample",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
@@ -161,7 +164,11 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onResume() {
-        setupObservers()
+        try {
+            setupObservers()
+        } catch (e: Exception) {
+            Log.d("abhi", "error :: $e")
+        }
         super.onResume()
     }
 

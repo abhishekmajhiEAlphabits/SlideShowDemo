@@ -1,18 +1,18 @@
 package com.example.slideshowdemo.adapters
 
-import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.VideoView
 import com.example.slideshowdemo.R
 import com.example.slideshowdemo.loopingviewpager.LoopingPagerAdapter
 import com.example.slideshowdemo.model.FileDescriptors
-import kotlin.collections.ArrayList
 
 
 class DemoInfiniteAdapter(
@@ -67,15 +67,16 @@ class DemoInfiniteAdapter(
             imageView = convertView.findViewById<View>(R.id.image) as ImageView
             Log.d("abhi", "listIf :: $listPosition :: ${itemList!![listPosition].slideFilePath}")
 //            loading.visibility = View.GONE
-//            imageView.visibility = View.GONE
+            imageView.visibility = View.VISIBLE
             if (itemList!![listPosition].slideFilePath != null && itemList!![listPosition].isFileExist) {
                 videoView.visibility = View.VISIBLE
                 videoView.setVideoURI(Uri.parse(itemList!![listPosition].slideFilePath))
 //                videoView.setVideoURI(Uri.parse("android.resource://com.example.slideshowdemo/raw/sample"))
 //                videoView.start()
                 videoView.setOnPreparedListener {
-//                    it.start()
-                    videoView!!.start()
+                    it.start()
+                    it.isLooping = true
+//                    videoView!!.start()
                 }
             } else {
 //                videoView.stopPlayback()
@@ -128,7 +129,6 @@ class DemoInfiniteAdapter(
 //                    )
 //                )
         }
-        Log.d("abhi", "descripFiledeabh :: $itemList")
 //        val description = convertView.findViewById<TextView>(R.id.description)
 //        description.text = itemList?.get(listPosition).toString()
     }
@@ -146,7 +146,7 @@ class DemoInfiniteAdapter(
     }
 
     fun setFileDescriptors(fileDescriptors: ArrayList<FileDescriptors>) {
-        if (this.itemList!!.size != 6) {
+        if (this.itemList!!.size != fileDescriptors.size) {
             this.itemList = fileDescriptors
             notifyDataSetChanged()
         }

@@ -4,9 +4,12 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
+import android.util.Log
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.example.slideshowdemo.R
+import com.example.slideshowdemo.network.PlaylistManager
+import com.example.slideshowdemo.utils.AppPreferences
 
 /**
  * A ViewPager that auto-scrolls, and supports infinite scroll.
@@ -16,9 +19,10 @@ class LoopingViewPager : ViewPager {
     protected var isInfinite = true
     protected var isAutoScroll = false
     protected var wrapContent = true
-    private var durations =
-        longArrayOf(2000, 3000, 3000, 3000, 1000, 10000)
+    private var staticDurations = longArrayOf(4000, 3000, 3000, 3000, 3000, 8000, 2000)
     var counter = 0
+    private lateinit var playlistManager: PlaylistManager
+    private lateinit var slideDurations: LongArray
 
     //AutoScroll
     private var interval = 5000
@@ -41,15 +45,14 @@ class LoopingViewPager : ViewPager {
     private var scrollState = SCROLL_STATE_IDLE
 
     constructor(context: Context) : super(context) {
+        playlistManager = PlaylistManager(context)
         init()
     }
 
     constructor(
-        context: Context,
-        attrs: AttributeSet?
+        context: Context, attrs: AttributeSet?
     ) : super(context, attrs) {
-        val a =
-            context.theme.obtainStyledAttributes(attrs, R.styleable.LoopingViewPager, 0, 0)
+        val a = context.theme.obtainStyledAttributes(attrs, R.styleable.LoopingViewPager, 0, 0)
         try {
             isInfinite = a.getBoolean(R.styleable.LoopingViewPager_isInfinite, false)
             isAutoScroll = a.getBoolean(R.styleable.LoopingViewPager_autoScroll, false)
@@ -59,20 +62,35 @@ class LoopingViewPager : ViewPager {
         } finally {
             a.recycle()
         }
+        playlistManager = PlaylistManager(context)
         init()
     }
 
+    private fun fillData() {
+        slideDurations = staticDurations
+        var localScreenCode = AppPreferences(context).retrieveValueByKey("LOCAL_SCREEN_CODE", "NA")
+        val responseSize = AppPreferences(context).retrieveValueByKey("PLAYLIST_SIZE", "6")
+        if (responseSize.toInt() != null && responseSize.toInt() != 0) {
+            for (i in 0 until responseSize.toInt()) {
+                slideDurations[i] =
+                    AppPreferences(context).retrieveValueByKey(
+                        "$localScreenCode-$i-INTERVAL",
+                        "10"
+                    ).toLong() * 1000
+            }
+            Log.d("abhi", "slideDuration :: ${slideDurations.size}")
+        }
+    }
+
     protected fun init() {
+        fillData()
         addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
+                position: Int, positionOffset: Float, positionOffsetPixels: Int
             ) {
                 if (onIndicatorProgress == null) return
                 onIndicatorProgress?.invoke(
-                    getRealPosition(position),
-                    positionOffset
+                    getRealPosition(position), positionOffset
                 )
             }
 
@@ -80,8 +98,12 @@ class LoopingViewPager : ViewPager {
                 currentPagePosition = position
                 if (isAutoScrollResumed) {
                     autoScrollHandler.removeCallbacks(autoScrollRunnable)
-                    autoScrollHandler.postDelayed(autoScrollRunnable, durations[counter])
-                    if (counter == 5) {
+                    var duration = slideDurations[position - 1]
+                    Log.d("abhi", "duration :: $duration")
+                    autoScrollHandler.postDelayed(
+                        autoScrollRunnable, duration
+                    )
+                    if (counter == slideDurations.size - 1) {
                         counter = 0
                     } else {
                         counter++

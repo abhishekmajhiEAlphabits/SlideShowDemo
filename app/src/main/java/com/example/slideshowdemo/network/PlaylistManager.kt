@@ -13,6 +13,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.slideshowdemo.model.FileDescriptors
 import com.example.slideshowdemo.model.PlaylistData
+import com.example.slideshowdemo.utils.AppPreferences
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -28,6 +29,7 @@ class PlaylistManager(context: Context) {
     private var mediaSourceUrls = ArrayList<PlaylistData>()
     private var playlistSize: Int? = null
     private var fileDescriptors = ArrayList<FileDescriptors>()
+    private var staticDurations = longArrayOf(4000, 3000, 3000, 3000, 3000, 8000, 2000)
 
     private val _fileDescriptorData = MutableLiveData<String>()
     val fileDescriptorData: LiveData<String> = _fileDescriptorData
@@ -35,7 +37,9 @@ class PlaylistManager(context: Context) {
 
     fun getPlayListData() {
         try {
-            var localScreenCode = "C22G66" //give screen code here from app preferences
+            var i = 0
+            var localScreenCode =
+                AppPreferences(context).retrieveValueByKey("LOCAL_SCREEN_CODE", "NA")
             ApiClient.client().create(ApiInterface::class.java)
                 .getPlayList(localScreenCode).enqueue(object : Callback<List<PlaylistData>> {
                     @RequiresApi(Build.VERSION_CODES.O)
@@ -50,6 +54,10 @@ class PlaylistManager(context: Context) {
                                 Log.d(TAG, "${response.body()}")
 
                                 if (response.body()!!.size != null) {
+                                    AppPreferences(context).saveKeyValue(
+                                        response.body()!!.size.toString(),
+                                        "$localScreenCode-PLAYLIST_SIZE"
+                                    )
                                     mediaSourceUrls.clear()
                                     for (data in response.body()!!) {
                                         var id = data.id
@@ -78,11 +86,60 @@ class PlaylistManager(context: Context) {
                                                     days
                                                 )
                                             )
+
+                                            AppPreferences(context).saveKeyValue(
+                                                id.toString(),
+                                                "$localScreenCode-$i-ID"
+                                            )
+                                            AppPreferences(context).saveKeyValue(
+                                                contentType.toString(),
+                                                "$localScreenCode-$i-CONTENT_TYPE"
+                                            )
+                                            AppPreferences(context).saveKeyValue(
+                                                slideContentUrl,
+                                                "$localScreenCode-$i-CONTENT_URL"
+                                            )
+                                            AppPreferences(context).saveKeyValue(
+                                                autoReplayVideo.toString(),
+                                                "$localScreenCode-$i-AUTO_REPLAY"
+                                            )
+                                            AppPreferences(context).saveKeyValue(
+                                                interval.toString(),
+                                                "$localScreenCode-$i-INTERVAL"
+                                            )
+                                            if (fromDate != null) {
+                                                AppPreferences(context).saveKeyValue(
+                                                    fromDate,
+                                                    "$localScreenCode-$i-FROM_DATE"
+                                                )
+                                            }
+                                            if (toDate != null) {
+                                                AppPreferences(context).saveKeyValue(
+                                                    toDate,
+                                                    "$localScreenCode-$i-TO_DATE"
+                                                )
+                                            }
+                                            if (fromTime != null) {
+                                                AppPreferences(context).saveKeyValue(
+                                                    fromTime,
+                                                    "$localScreenCode-$i-FROM_TIME"
+                                                )
+                                            }
+                                            if (toTime != null) {
+                                                AppPreferences(context).saveKeyValue(
+                                                    toTime,
+                                                    "$localScreenCode-$i-TO_TIME"
+                                                )
+                                            }
+                                            AppPreferences(context).saveKeyValue(
+                                                days.toString(),
+                                                "$$localScreenCode-$i-DAYS"
+                                            )
+
                                         }
+                                        i++
                                         Log.d(TAG, "${response.body()!!.size}")
                                     }
-                                    getFileUri()
-                                    readData()
                                 }
                             }
 
@@ -94,9 +151,13 @@ class PlaylistManager(context: Context) {
                             ).show()
                             Log.d(TAG, "Failed")
                         }
+                        getFileUri()
+                        readData()
                     }
 
                     override fun onFailure(call: Call<List<PlaylistData>>, t: Throwable) {
+                        getFileUri()
+                        readData()
                         Log.d(TAG, "$t")
                     }
                 })
@@ -107,75 +168,103 @@ class PlaylistManager(context: Context) {
     }
 
     private fun getFileUri() {
-        var localScreenCode = "C22G66"
-        var externalScreenCode = "C22G66"
-        mediaSourceUrls.forEach {
-            val uri: Uri = Uri.parse(it.slideContentUrl)
-            val filename = it.slideContentUrl.substring(it.slideContentUrl.length - 5)
-            Log.d(TAG, "file uri :: $uri :: $filename")
-            var firstRun = false
-            if (firstRun) {
-                downloadMedia(uri, it.id, it.contentType, filename)
-                Log.d(TAG, "file downloading.. :: $filename")
-            } else {
-                if (localScreenCode != externalScreenCode) {
-                    //code to delete files for the previous screen code because if
-                    //the filename of the two screen codes may be same the new files
-                    //will be downloaded with like eg:- 100_1,100_2
-                    if (!fileExistInStorage(filename)) {
-                        downloadMedia(uri, it.id, it.contentType, filename)
+        try {
+            var localScreenCode =
+                AppPreferences(context).retrieveValueByKey("LOCAL_SCREEN_CODE", "NA")
+            var externalScreenCode = "C22G66"
+            val responseSize =
+                AppPreferences(context).retrieveValueByKey("$localScreenCode-PLAYLIST_SIZE", "6")
+            for (i in 0 until responseSize.toInt()) {
+                var id = AppPreferences(context).retrieveValueByKey("$localScreenCode-$i-ID", "0")
+                var contentType =
+                    AppPreferences(context).retrieveValueByKey(
+                        "$localScreenCode-$i-CONTENT_TYPE",
+                        "2"
+                    )
+                var slideContentUrl =
+                    AppPreferences(context).retrieveValueByKey(
+                        "$localScreenCode-$i-CONTENT_URL",
+                        "NA"
+                    )
+                if (slideContentUrl != "NA") {
+                    val uri: Uri = Uri.parse(slideContentUrl)
+                    val filename = slideContentUrl.substring(slideContentUrl.length - 5)
+                    Log.d(TAG, "file uri :: $uri :: $filename :: $filename")
+                    Log.d(TAG, "file uri :: $contentType :: $id :: $slideContentUrl")
+                    var firstRun = false
+                    if (firstRun) {
+                        downloadMedia(uri, id.toInt(), contentType.toInt(), filename)
                         Log.d(TAG, "file downloading.. :: $filename")
                     } else {
-                        Log.d(TAG, "file already exists :: $filename")
-                    }
-                } else {
-                    if (!fileExistInStorage(filename)) {
-                        downloadMedia(uri, it.id, it.contentType, filename)
-                        Log.d(TAG, "file downloading.. :: $filename")
-                    } else {
-                        Log.d(TAG, "file already exists :: $filename")
+                        if (localScreenCode != externalScreenCode) {
+                            //code to delete files for the previous screen code because if
+                            //the filename of the two screen codes may be same the new files
+                            //will be downloaded with like eg:- 100_1,100_2
+                            if (!fileExistInStorage(filename)) {
+                                downloadMedia(uri, id.toInt(), contentType.toInt(), filename)
+                                Log.d(TAG, "file downloading.. :: $filename")
+                            } else {
+                                Log.d(TAG, "file already exists :: $filename")
+                            }
+                        } else {
+                            if (!fileExistInStorage(filename)) {
+                                downloadMedia(uri, id.toInt(), contentType.toInt(), filename)
+                                Log.d(TAG, "file downloading.. :: $filename")
+                            } else {
+                                Log.d(TAG, "file already exists :: $filename")
+                            }
+                        }
                     }
                 }
             }
+            playlistSize = mediaSourceUrls.size
+            Log.d(TAG, "$playlistSize")
+        } catch (e: Exception) {
+            Log.d(TAG, "$e")
         }
-        playlistSize = mediaSourceUrls.size
-        Log.d(TAG, "$playlistSize")
     }
 
     private fun downloadMedia(uri: Uri, fileId: Int, contentType: Int, filename: String) {
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val request = DownloadManager.Request(uri)
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        try {
+            val downloadManager =
+                context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val request = DownloadManager.Request(uri)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
-        request.setDestinationInExternalFilesDir(
-            context,
-            Environment.DIRECTORY_DOWNLOADS,
-            "$filename"
-        )
-        Log.d(TAG, "files image/video fileDir :: $fileId")
+            request.setDestinationInExternalFilesDir(
+                context,
+                Environment.DIRECTORY_DOWNLOADS,
+                "$filename"
+            )
+            Log.d(TAG, "files image/video fileDir :: $fileId")
 
 
-        val reference = downloadManager.enqueue(request)
-        val query = DownloadManager.Query()
+            val reference = downloadManager.enqueue(request)
+            val query = DownloadManager.Query()
 
-        query.setFilterById(reference)
-        val cursor: Cursor = downloadManager.query(query)
+            query.setFilterById(reference)
+            val cursor: Cursor = downloadManager.query(query)
+        } catch (e: Exception) {
+            Log.d(TAG, "$e")
+        }
     }
 
     private fun readFromStorage(fileId: Int, contentType: Int, interval: Int, filename: String) {
+        try {
+            var filePath =
+                "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$filename"
+            var file = File(filePath)
+            if (file.exists()) {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
+            } else {
+                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
+            }
+            Log.d(TAG, "read image/video :: $filePath :: ${file.exists()}")
 
-        var filePath =
-            "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$filename"
-        var file = File(filePath)
-        if (file.exists()) {
-            fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
-        } else {
-            fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
+            _fileDescriptorData.postValue("file descriptor data updated")
+        } catch (e: Exception) {
+            Log.d(TAG, "$e")
         }
-        Log.d(TAG, "read image/video :: $filePath :: ${file.exists()}")
-
-        _fileDescriptorData.postValue("file descriptor data updated")
-
     }
 
     fun getDownloadedFilePath(): ArrayList<FileDescriptors> {
@@ -185,11 +274,36 @@ class PlaylistManager(context: Context) {
     }
 
     private fun readData() {
-        fileDescriptors.clear()
-        mediaSourceUrls.forEach {
-            val filename = it.slideContentUrl.substring(it.slideContentUrl.length - 5)
-            readFromStorage(it.id, it.contentType, it.interval, filename)
-            Log.d("abhi", "readData")
+        try {
+            var localScreenCode =
+                AppPreferences(context).retrieveValueByKey("LOCAL_SCREEN_CODE", "NA")
+            fileDescriptors.clear()
+            val responseSize = AppPreferences(context).retrieveValueByKey("PLAYLIST_SIZE", "6")
+            for (i in 0 until responseSize.toInt()) {
+                var id = AppPreferences(context).retrieveValueByKey("$localScreenCode-$i-ID", "0")
+                var contentType =
+                    AppPreferences(context).retrieveValueByKey(
+                        "$localScreenCode-$i-CONTENT_TYPE",
+                        "2"
+                    )
+                var slideContentUrl =
+                    AppPreferences(context).retrieveValueByKey(
+                        "$localScreenCode-$i-CONTENT_URL",
+                        "NA"
+                    )
+                if (slideContentUrl != "NA") {
+                    var interval =
+                        AppPreferences(context).retrieveValueByKey(
+                            "$localScreenCode-$i-INTERVAL",
+                            "NA"
+                        )
+                    val filename = slideContentUrl.substring(slideContentUrl.length - 5)
+                    readFromStorage(id.toInt(), contentType.toInt(), interval.toInt(), filename)
+                    Log.d("abhi", "readData")
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "$e")
         }
     }
 
@@ -199,54 +313,19 @@ class PlaylistManager(context: Context) {
         return file.exists()
     }
 
-    private fun extrasCode() {
-
-//        if (contentType == 2) {
-//            var filePath =
-//                "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.JPG"
-////            val path = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath}/$fileId.JPG"
-//            var file = File(filePath)
-//            if (file.exists()) {
-//                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
-//            } else {
-//                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
-//            }
-//            Log.d(TAG, "read image :: $filePath :: ${file.exists()}")
-//        }
-//
-//        if (contentType == 3) {
-//            var filePath =
-//                "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}/$fileId.mp4"
-//            var file = File(filePath)
-//            if (file.exists()) {
-//                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, true, interval))
-//            } else {
-//                fileDescriptors.add(FileDescriptors(fileId, contentType, filePath, false, interval))
-//            }
-//            Log.d(TAG, "read video :: $filePath :: ${file.exists()}")
-//        }
-
-
-//        if (contentType == 2) {
-////            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
-////            val fileDir: String = "/DownloadTestFolder"
-//            request.setDestinationInExternalFilesDir(
-//                context,
-//                Environment.DIRECTORY_DOWNLOADS,
-//                "$fileId.JPG"
-//            )
-//            Log.d(TAG, "files image fileDir :: $fileId")
-//        }
-//
-//        if (contentType == 3) {
-////            val fileDir: String = "${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)}"
-//            request.setDestinationInExternalFilesDir(
-//                context,
-//                Environment.DIRECTORY_DOWNLOADS,
-//                "$fileId.mp4"
-//            )
-//            Log.d(TAG, "files video fileDir :: $fileId")
-//        }
+    fun getSlideDurations(): LongArray {
+        Log.d("abhi", "slideDurationFile :: ${fileDescriptors.size}")
+        if (fileDescriptors.size != null && fileDescriptors.size != 0) {
+            var durationsArray = LongArray(fileDescriptors.size)
+            var i = 0
+            fileDescriptors.forEach {
+                durationsArray[i] = it.interval.toLong()
+                i++
+            }
+            return durationsArray
+        } else {
+            return staticDurations
+        }
     }
 
 }
