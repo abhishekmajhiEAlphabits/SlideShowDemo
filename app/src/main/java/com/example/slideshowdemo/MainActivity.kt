@@ -5,17 +5,18 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.WindowManager
+import android.view.animation.Interpolator
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import androidx.viewpager.widget.ViewPager
 import com.example.slideshowdemo.adapters.DemoInfiniteAdapter
+import com.example.slideshowdemo.loopingviewpager.FixedSpeedScroller
 import com.example.slideshowdemo.loopingviewpager.LoopingViewPager
 import com.example.slideshowdemo.model.FileDescriptors
-import com.example.slideshowdemo.model.Slide
 import com.example.slideshowdemo.network.PlaylistManager
 import com.example.slideshowdemo.receivers.DownloadsReceiver
 import com.example.slideshowdemo.utils.AppPreferences
@@ -95,6 +96,21 @@ class MainActivity : AppCompatActivity() {
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
 //            fileDescriptors.add(FileDescriptors(100,2,"hgh",true,10))
+
+            try {
+                val mScroller = ViewPager::class.java.getDeclaredField("mScroller")
+                mScroller.isAccessible = true
+                val interpolator = ViewPager::class.java.getDeclaredField("sInterpolator")
+                interpolator.isAccessible = true
+                val scroller = FixedSpeedScroller(viewPager.getContext(),
+                    interpolator[null] as Interpolator
+                )
+                // scroller.setFixedDuration(5000);
+                mScroller.set(viewPager, scroller)
+            } catch (e: NoSuchFieldException) {
+            } catch (e: IllegalArgumentException) {
+            } catch (e: IllegalAccessException) {
+            }
 
             adapter = DemoInfiniteAdapter(fileDescriptors, true)
             viewPager.adapter = adapter
